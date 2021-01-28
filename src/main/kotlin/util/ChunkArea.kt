@@ -30,13 +30,13 @@ data class ChunkArea(
         private var currentZ = min.z
 
         override fun computeNext(): ChunkPos? {
-            if (currentZ >= max.z) {
+            if (currentZ > max.z) {
                 currentZ = min.z
                 currentX++
             } else {
                 currentZ++
             }
-            if (currentX > max.x) return endOfData()
+            if (currentX >= max.x) return endOfData()
             return ChunkPos(currentX, currentZ)
         }
     }

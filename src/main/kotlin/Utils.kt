@@ -2,14 +2,20 @@ package me.geek.tom.slimeforfabric
 
 import me.geek.tom.slimeforfabric.io.OkioBufferOutput
 import me.geek.tom.slimeforfabric.ser.SlimeSerialiser
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.NbtIo
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.Heightmap
 import net.minecraft.world.biome.source.BiomeArray
 import net.minecraft.world.chunk.Chunk
+import okio.Buffer
 import okio.BufferedSink
 import okio.buffer
 import okio.sink
+import java.io.ByteArrayOutputStream
+import java.io.DataOutputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Consumer
@@ -42,6 +48,19 @@ fun Heightmap.toIntArray(): IntArray {
         arr[i] = height.toInt()
     }
     return arr
+}
+
+fun Buffer.writeListTag(tag: ListTag) {
+    val tg = CompoundTag()
+    tg.put("Data", tag)
+    this.writeNbt(tg)
+}
+
+fun Buffer.writeNbt(tag: CompoundTag) {
+    val baos = ByteArrayOutputStream()
+    val output = DataOutputStream(baos)
+    NbtIo.write(tag, output)
+    this.write(baos.toByteArray())
 }
 
 fun write(path: Path, output: Consumer<BufferedSink>) {
