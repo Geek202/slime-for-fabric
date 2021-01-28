@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "slime-for-fabric",
+  "version": "${version}",
+  "name": "Slime For Fabric",
+  "description": "An attempt at implementing Hypixels SLIME world format on Fabric",
+  "authors": [
+    "Tom_The_Geek"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/slime-for-fabric/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "me.geek.tom.slimeforfabric.client.SlimeForFabricClient"
+    ],
+    "main": [
+      "me.geek.tom.slimeforfabric.SlimeForFabric"
+    ]
+  },
+  "mixins": [
+    "slime-for-fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.1",
+    "minecraft": "1.16.5"
+  }
+}
