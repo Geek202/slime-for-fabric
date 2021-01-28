@@ -46,7 +46,7 @@ public class SlimeForFabric implements ModInitializer {
                                             }
                                         }
 
-                                        Path outputPath = worldsPath.resolve(output.trim() + ".slime");
+                                        Path outputPath = worldsPath.resolve(output.trim() + ".slimem");
                                         UtilsKt.write(outputPath, buffer -> {
                                             try {
                                                 SlimeSerialiser.INSTANCE.serialiseWorld(new OkioBufferOutput(buffer), world, area);
