@@ -1,18 +1,17 @@
 package me.geek.tom.slimeforfabric.ser
 
-import me.geek.tom.slimeforfabric.getChunk
+import me.geek.tom.slimeforfabric.*
 import me.geek.tom.slimeforfabric.io.DataOutput
-import me.geek.tom.slimeforfabric.isEmpty
-import me.geek.tom.slimeforfabric.toIntArray
 import me.geek.tom.slimeforfabric.util.ChunkArea
-import me.geek.tom.slimeforfabric.writeListTag
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.ChunkSectionPos
 import net.minecraft.world.Heightmap
 import net.minecraft.world.LightType
 import net.minecraft.world.chunk.ChunkNibbleArray
 import net.minecraft.world.chunk.ChunkSection
+import net.minecraft.world.chunk.WorldChunk
 import okio.Buffer
 
 @ExperimentalUnsignedTypes
@@ -22,6 +21,54 @@ object SlimeSerialiser {
         this.writeMetadata(output, area)
         this.writeChunkBitmask(output, world, area)
         this.writeChunkData(output, world, area)
+        this.writeBlockEntityData(output, world, area)
+        this.writeEntityData(output, world, area)
+    }
+
+    private fun writeEntityData(output: DataOutput, world: ServerWorld, area: ChunkArea) {
+        val buffer = buildEntityData(world, area)
+        output.compressAndWriteBuffer(buffer)
+    }
+
+    private fun buildEntityData(world: ServerWorld, area: ChunkArea): Buffer {
+        val entities = ListTag()
+        for (chunkPos in area) {
+            val chunk = world.getChunk(chunkPos) as WorldChunk
+            for (list in chunk.entitySectionArray) {
+                for (entity in list.asIterable()) {
+                    val tag = CompoundTag()
+                    if (entity.saveToTag(tag)) {
+                        entities.add(tag)
+                    }
+                }
+            }
+        }
+        val tag = CompoundTag()
+        tag.put("entities", entities)
+        val buffer = Buffer()
+        buffer.writeNbt(tag)
+        return buffer
+    }
+
+    private fun writeBlockEntityData(output: DataOutput, world: ServerWorld, area: ChunkArea) {
+        val buffer = buildBlockEntityData(world, area)
+        output.compressAndWriteBuffer(buffer)
+    }
+
+    private fun buildBlockEntityData(world: ServerWorld, area: ChunkArea): Buffer {
+        val buffer = Buffer()
+        val bes = ListTag()
+        val rootTag = CompoundTag()
+        for (chunkPos in area) {
+            val chunk = world.getChunk(chunkPos) as WorldChunk
+            for (be in chunk.blockEntities.values) {
+                val beData = be.toTag(CompoundTag())
+                bes.add(beData)
+            }
+        }
+        rootTag.put("tiles", bes)
+        buffer.writeNbt(rootTag)
+        return buffer
     }
 
     /**
@@ -55,7 +102,6 @@ object SlimeSerialiser {
 
             for (chunkSection in chunk.sectionArray) {
                 if (chunkSection == null) {
-                    println("Null chunk section!")
                     continue
                 }
                 val sectionIndex = chunkSection.yOffset shr 16
