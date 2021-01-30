@@ -1,12 +1,9 @@
 package me.geek.tom.slimeforfabric.io
 
 import com.github.luben.zstd.Zstd
+import me.geek.tom.slimeforfabric.util.Bitset
 import okio.Buffer
 import okio.BufferedSource
-import okio.buffer
-import okio.sink
-import java.nio.file.Files
-import java.nio.file.Paths
 
 @ExperimentalUnsignedTypes
 class OkioSourceInput(
@@ -42,41 +39,17 @@ class OkioSourceInput(
     }
 
     override fun decompressAndReadBuffer(): Buffer {
-//        println("Buffer pos before read")
-
         val compressedSize = source.readInt()
         val uncompressedSize = source.readInt()
-        println("Largest: ${if (compressedSize > uncompressedSize) "compressed" else "uncompressed" } Compressed: $compressedSize Uncompressed: $uncompressedSize")
         val compressedData = ByteArray(compressedSize)
         var read = 0
         while (read < compressedData.size) {
             read += source.read(compressedData, read, compressedData.size - read)
         }
 
-        println("Compressed size read: ${compressedData.size}")
-        val buffer = Buffer()
-
-        var debug = Paths.get("compressed_data_after.bin")
-        if (!Files.exists(debug)) {
-            debug.sink().use {
-                it.buffer().use { sink ->
-                    sink.write(compressedData)
-                }
-            }
-        }
-
         val decompressedData = Zstd.decompress(compressedData, uncompressedSize)
 
-        debug = Paths.get("decompressed_data_after.bin")
-        if (!Files.exists(debug)) {
-            debug.sink().use {
-                it.buffer().use { sink ->
-                    sink.write(decompressedData)
-                }
-            }
-        }
-
-        println("Decompressed data length: ${decompressedData.size}")
+        val buffer = Buffer()
         buffer.write(decompressedData)
         return buffer
     }

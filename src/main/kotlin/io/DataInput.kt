@@ -1,5 +1,6 @@
 package me.geek.tom.slimeforfabric.io
 
+import me.geek.tom.slimeforfabric.util.Bitset
 import okio.Buffer
 
 @ExperimentalUnsignedTypes

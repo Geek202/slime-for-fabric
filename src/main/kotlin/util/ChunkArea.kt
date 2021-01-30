@@ -43,7 +43,6 @@ data class ChunkArea(
             }
             if (currentZ >= max.z) return endOfData()
 
-//            println("X: ${ret.x.toString().padStart(2)} Z: ${ret.z.toString().padStart(2)}")
             return ret
         }
     }

@@ -1,7 +1,6 @@
 package me.geek.tom.slimeforfabric.deser
 
 import net.minecraft.fluid.Fluids
-import net.minecraft.nbt.CompoundTag
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.ChunkTickScheduler
 import net.minecraft.world.chunk.*
@@ -22,8 +21,6 @@ class SlimeChunk(chunkPos: ChunkPos, sections: Array<ChunkSection?>?) :
         if (other is WorldChunk) {
             other.blockEntities.clear()
             other.markDirty()
-        } else {
-            println("Not a WorldChunk!")
         }
     }
 }

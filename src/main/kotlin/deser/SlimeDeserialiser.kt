@@ -1,11 +1,10 @@
 package me.geek.tom.slimeforfabric.deser
 
-import me.geek.tom.slimeforfabric.io.Bitset
 import me.geek.tom.slimeforfabric.io.DataInput
 import me.geek.tom.slimeforfabric.readLongArray
 import me.geek.tom.slimeforfabric.readNbt
+import me.geek.tom.slimeforfabric.util.Bitset
 import me.geek.tom.slimeforfabric.util.ChunkArea
-import me.geek.tom.slimeforfabric.util.checkBufferStateForNbtRead
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.util.math.ChunkSectionPos
@@ -58,17 +57,14 @@ object SlimeDeserialiser {
         for ((index, chunkPos) in area.withIndex()) {
             val chunk = if (chunkBitmask[index] == true) {
                 val lightingProvider = world.chunkManager.lightingProvider
-                val ch = readBaseChunkData(chunkPos, chunkData, { section, blockLight ->
+                readBaseChunkData(chunkPos, chunkData, { section, blockLight ->
                     // Set this last value to true, because thats what vanilla does lol.
                     lightingProvider.enqueueSectionData(LightType.BLOCK, section, blockLight, true)
                 }, { section, skyLight ->
                     // Set this last value to true, because thats what vanilla does lol.
                     lightingProvider.enqueueSectionData(LightType.SKY, section, skyLight, true)
                 })
-                println("Chunk read done!")
-                ch
             } else {
-                println("empty chunk")
                 createEmptyChunk(chunkPos)
             }
             // Place the chunk into our temporary storage.
@@ -84,9 +80,6 @@ object SlimeDeserialiser {
     private fun readBaseChunkData(pos: ChunkPos, data: Buffer,
                                   blockLightHandler: (ChunkSectionPos, ChunkNibbleArray) -> Unit,
                                   skyLightHandler: (ChunkSectionPos, ChunkNibbleArray) -> Unit): SlimeChunk {
-        // Debugging.
-        checkBufferStateForNbtRead(data.copy())
-
         val heightmapData = data.readLongArray(37) // Got this from looking at the length of the array in a vanilla region file.
         val biomeData = IntArray(1024) // Again, got this value from a vanilla file
         for (i in 0 until 1024) biomeData[i] = data.readInt()
@@ -127,7 +120,6 @@ object SlimeDeserialiser {
 
         val initialLength = data.size
         val blockLightData = data.readByteArray(2048)
-        println("Buffer shrank by ${initialLength - data.size} bytes!")
         val blockLight = ChunkNibbleArray(blockLightData)
         blockLightHandler.invoke(blockLight)
 

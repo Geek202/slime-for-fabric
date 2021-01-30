@@ -5,7 +5,7 @@ import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.ChunkPos
 
 class SlimeWorld(
-    val chunks: Map<ChunkPos, SlimeChunk>,
+    private val chunks: Map<ChunkPos, SlimeChunk>,
 ) {
 
     fun copyInto(world: ServerWorld) {

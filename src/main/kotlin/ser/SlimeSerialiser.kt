@@ -1,9 +1,9 @@
 package me.geek.tom.slimeforfabric.ser
 
 import me.geek.tom.slimeforfabric.getChunk
-import me.geek.tom.slimeforfabric.io.Bitset
 import me.geek.tom.slimeforfabric.io.DataOutput
 import me.geek.tom.slimeforfabric.isEmpty
+import me.geek.tom.slimeforfabric.util.Bitset
 import me.geek.tom.slimeforfabric.util.ChunkArea
 import me.geek.tom.slimeforfabric.writeListTag
 import net.minecraft.nbt.CompoundTag
@@ -100,11 +100,9 @@ object SlimeSerialiser {
 
             val heightmap = chunk.getHeightmap(Heightmap.Type.WORLD_SURFACE)
             val heightmapLongs = heightmap.asLongArray()
-//            println("Heightmap data length: ${heightmapLongs.size}")
             heightmapLongs.forEach(buffer::writeLong)
             // We assert not-null here as a ServerWorld only deals with WorldChunks (afaik at time of writing)
             val biomeData = chunk.biomeArray!!.toIntArray()
-//            println("Biome data length: ${biomeData.size}")
             biomeData.forEach(buffer::writeInt)
 
             // Write the chunk sections
@@ -145,11 +143,8 @@ object SlimeSerialiser {
             bitSet[currentBit] = bit
             bitCount++
         }
-        println("Bitcount: $bitCount")
         val computedMaskLength = ceil((area.width * area.depth).toDouble() / 8.0).toInt()
         output.writeBitSet(bitSet, computedMaskLength)
-        println("Chunk count: ${area.depth * area.width}, bit count: ${bitSet.size()}")
-        println("Wrote $computedMaskLength bytes for chunk bitmask!")
     }
 
     /**
@@ -159,16 +154,12 @@ object SlimeSerialiser {
         if (section.isEmpty) return false
 
         val blockLightBytes = blockLight.asByteArray()
-//        println("Block light length: ${blockLightBytes.size}")
-//        val initialSize = buffer.size
         buffer.write(blockLightBytes)
-//        println("Buffer grew by ${buffer.size - initialSize} bytes!")
 
         val containerTag = CompoundTag()
         section.container.write(containerTag, "palette", "blocks")
         val paletteTag = containerTag.getList("palette", 10)!! // assert non-null here, as we know it was written above
         val blocks = containerTag.getLongArray("blocks")
-//        println("Blocks are ${blocks.size * 8} bytes!")
         buffer.writeListTag(paletteTag)
         buffer.writeInt(blocks.size)
         blocks.forEach(buffer::writeLong)

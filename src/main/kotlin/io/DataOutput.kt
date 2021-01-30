@@ -1,6 +1,6 @@
 package me.geek.tom.slimeforfabric.io
 
-import okio.Buffer
+import me.geek.tom.slimeforfabric.util.Bitset
 
 @ExperimentalUnsignedTypes
 interface DataOutput {

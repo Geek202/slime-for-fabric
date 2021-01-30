@@ -1,4 +1,4 @@
-package me.geek.tom.slimeforfabric.io
+package me.geek.tom.slimeforfabric.util
 
 import kotlin.experimental.and
 import kotlin.experimental.or
