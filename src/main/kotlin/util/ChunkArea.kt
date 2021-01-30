@@ -4,6 +4,7 @@ import com.google.common.collect.AbstractIterator
 import net.minecraft.util.math.ChunkPos
 import kotlin.math.abs
 
+@ExperimentalUnsignedTypes
 data class ChunkArea(
     val a: ChunkPos,
     val b: ChunkPos,
@@ -12,8 +13,8 @@ data class ChunkArea(
     val lowest get() = a
     val highest get() = b
 
-    val width get() = abs(a.x - b.x).toShort()
-    val depth get() = abs(a.z - b.z).toShort()
+    val width get() = abs(a.x - b.x).toUShort()
+    val depth get() = abs(a.z - b.z).toUShort()
 
     constructor(x: Int, z: Int, width: Int, depth: Int): this(ChunkPos(x, z), ChunkPos(x + width, z + depth))
 
@@ -30,14 +31,20 @@ data class ChunkArea(
         private var currentZ = min.z
 
         override fun computeNext(): ChunkPos? {
-            if (currentZ > max.z) {
-                currentZ = min.z
-                currentX++
-            } else {
+            if (currentX >= max.x) {
+                currentX = min.x
                 currentZ++
             }
-            if (currentX >= max.x) return endOfData()
-            return ChunkPos(currentX, currentZ)
+
+            val ret = ChunkPos(currentX, currentZ)
+
+            if (currentX < max.x) {
+                currentX++
+            }
+            if (currentZ >= max.z) return endOfData()
+
+//            println("X: ${ret.x.toString().padStart(2)} Z: ${ret.z.toString().padStart(2)}")
+            return ret
         }
     }
 }
