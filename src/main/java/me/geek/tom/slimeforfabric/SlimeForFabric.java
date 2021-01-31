@@ -31,6 +31,7 @@ public class SlimeForFabric implements ModInitializer {
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
             dispatcher.register(literal("slime")
+                    .requires(s -> s.hasPermissionLevel(4))
                     .then(literal("write")
                             .then(argument("output", string())
                                     .then(argument("x", integer()).then(argument("z", integer()).then(argument("width", integer()).then(argument("depth", integer()).then(argument("custom", nbtCompound())
