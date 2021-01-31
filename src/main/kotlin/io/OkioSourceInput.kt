@@ -2,8 +2,12 @@ package me.geek.tom.slimeforfabric.io
 
 import com.github.luben.zstd.Zstd
 import me.geek.tom.slimeforfabric.util.Bitset
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtIo
 import okio.Buffer
 import okio.BufferedSource
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
 
 @ExperimentalUnsignedTypes
 class OkioSourceInput(
@@ -52,5 +56,11 @@ class OkioSourceInput(
         val buffer = Buffer()
         buffer.write(decompressedData)
         return buffer
+    }
+
+    override fun readCompressedNbt(): CompoundTag {
+        val buffer = this.decompressAndReadBuffer().readByteArray()
+        val bais = ByteArrayInputStream(buffer)
+        return NbtIo.read(DataInputStream(bais))
     }
 }

@@ -9,7 +9,6 @@
   ],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/slime-for-fabric/icon.png",
   "environment": "*",
   "entrypoints": {
     "client": [
@@ -22,6 +21,7 @@
   "mixins": [
     "slime-for-fabric.mixins.json"
   ],
+  "accessWidener": "slime-for-fabric.aw",
   "depends": {
     "fabricloader": ">=0.11.1",
     "minecraft": "1.16.5"

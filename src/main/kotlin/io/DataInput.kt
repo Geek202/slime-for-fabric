@@ -1,6 +1,7 @@
 package me.geek.tom.slimeforfabric.io
 
 import me.geek.tom.slimeforfabric.util.Bitset
+import net.minecraft.nbt.CompoundTag
 import okio.Buffer
 
 @ExperimentalUnsignedTypes
@@ -19,4 +20,5 @@ interface DataInput {
     fun readBytes(length: Int): ByteArray
 
     fun decompressAndReadBuffer(): Buffer
+    fun readCompressedNbt(): CompoundTag
 }

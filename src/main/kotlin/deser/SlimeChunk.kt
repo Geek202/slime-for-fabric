@@ -12,7 +12,6 @@ class SlimeChunk(chunkPos: ChunkPos, sections: Array<ChunkSection?>?) :
         fluid == null || fluid === Fluids.EMPTY
     }, chunkPos)) {
 
-
     /**
      * This is very cursed
      */
@@ -21,6 +20,14 @@ class SlimeChunk(chunkPos: ChunkPos, sections: Array<ChunkSection?>?) :
         if (other is WorldChunk) {
             other.blockEntities.clear()
             other.markDirty()
+            for (i in 0 until 16) {
+                val entities = other.entitySectionArray[i].method_29903()
+                for (entity in entities) {
+                    entity.remove()
+                }
+            }
         }
+
+        System.arraycopy(this.biomeArray!!.data, 0, other.biomeArray!!.data, 0, this.biomeArray!!.data.size)
     }
 }

@@ -26,6 +26,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class SlimeForFabric implements ModInitializer {
+    @SuppressWarnings("CodeBlock2Expr")
     @Override
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
@@ -59,7 +60,7 @@ public class SlimeForFabric implements ModInitializer {
                                                         throw e;
                                                     }
                                                 });
-                                                ctx.getSource().sendFeedback(new LiteralText("Wrote to: " + outputPath), false);
+                                                ctx.getSource().sendFeedback(new LiteralText("Wrote to: " + outputPath.getFileName()), false);
 
                                                 return Command.SINGLE_SUCCESS;
                                             })
@@ -91,6 +92,8 @@ public class SlimeForFabric implements ModInitializer {
                                         e.printStackTrace();
                                     }
                                 });
+
+                                ctx.getSource().sendFeedback(new LiteralText("Loaded (most) data from: " + inputPath.getFileName()), false);
 
                                 return Command.SINGLE_SUCCESS;
                             }))

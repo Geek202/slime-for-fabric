@@ -18,8 +18,6 @@ import net.minecraft.world.chunk.ChunkSection
 import net.minecraft.world.chunk.WorldChunk
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.math.ceil
 
 @ExperimentalUnsignedTypes
@@ -78,8 +76,6 @@ object SlimeSerialiser {
      */
     private fun writeChunkData(output: DataOutput, world: ServerWorld, area: ChunkArea) {
         val chunkData = buildChunkData(world, area)
-        val debug = Paths.get("asdasd_pls_just_work_1.bin")
-        if (!Files.exists(debug)) Files.write(debug, chunkData)
         output.compressAndWriteBuffer(chunkData)
     }
 

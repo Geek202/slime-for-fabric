@@ -8,15 +8,14 @@ import me.geek.tom.slimeforfabric.util.ChunkArea
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.util.math.ChunkSectionPos
+import net.minecraft.util.registry.DynamicRegistryManager
+import net.minecraft.util.registry.Registry
 import net.minecraft.world.LightType
+import net.minecraft.world.biome.source.BiomeArray
 import net.minecraft.world.chunk.ChunkNibbleArray
 import net.minecraft.world.chunk.ChunkSection
 import okio.Buffer
-import okio.buffer
-import okio.sink
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.math.ceil
 
 @ExperimentalUnsignedTypes
@@ -46,7 +45,7 @@ object SlimeDeserialiser {
         // Combine the region metadata into a ChunkArea for easier iteration later
         val area = ChunkArea(x.toInt(), z.toInt(), width.toInt(), depth.toInt())
 
-        // This species what chunks are contained in the file, as empty chunks are skiped.
+        // This species what chunks are contained in the file, as empty chunks are skipped.
         val chunkBitmaskLength = ceil(((width*depth).toDouble() / (8.0))).toInt()
         val chunkBitmask = input.readBitset(width*depth, chunkBitmaskLength)
 
@@ -55,29 +54,36 @@ object SlimeDeserialiser {
 
         val chunks: MutableMap<ChunkPos, SlimeChunk> = HashMap()
         for ((index, chunkPos) in area.withIndex()) {
-            val chunk = if (chunkBitmask[index] == true) {
+            if (chunkBitmask[index] == true) {
                 val lightingProvider = world.chunkManager.lightingProvider
-                readBaseChunkData(chunkPos, chunkData, { section, blockLight ->
-                    // Set this last value to true, because thats what vanilla does lol.
-                    lightingProvider.enqueueSectionData(LightType.BLOCK, section, blockLight, true)
+                val chunk = readBaseChunkData(chunkPos, chunkData, world.registryManager, { section, blockLight ->
+                    // Set this last value to false, because it seems to make vanilla correct lighting on neighbouring chunks.
+                    lightingProvider.enqueueSectionData(LightType.BLOCK, section, blockLight, false)
                 }, { section, skyLight ->
-                    // Set this last value to true, because thats what vanilla does lol.
-                    lightingProvider.enqueueSectionData(LightType.SKY, section, skyLight, true)
+                    // Set this last value to false, because it seems to make vanilla correct lighting on neighbouring chunks.
+                    lightingProvider.enqueueSectionData(LightType.SKY, section, skyLight, false)
                 })
-            } else {
-                createEmptyChunk(chunkPos)
+                // Place the chunk into our temporary storage.
+                chunks[chunkPos] = chunk
             }
-            // Place the chunk into our temporary storage.
-            chunks[chunkPos] = chunk
         }
 
+        // /slime write normal_world_1 -2 -2 5 5 {}
+        // Read the BlockEntity data
+        val blockEntityData = input.readCompressedNbt()
+        val blockEntityTag = blockEntityData.getList("tiles", 10)
+
+        // Read the entity data
+        val entityData = input.readCompressedNbt()
+        val entityTag = entityData.getList("entities", 10)
+
         // Bundle all the data into a SlimeWorld object
-        val slimeWorld = SlimeWorld(chunks)
+        val slimeWorld = SlimeWorld(chunks, blockEntityTag, entityTag)
         // Actually place the loaded data into the world.
         slimeWorld.copyInto(world)
     }
 
-    private fun readBaseChunkData(pos: ChunkPos, data: Buffer,
+    private fun readBaseChunkData(pos: ChunkPos, data: Buffer, registryManager: DynamicRegistryManager,
                                   blockLightHandler: (ChunkSectionPos, ChunkNibbleArray) -> Unit,
                                   skyLightHandler: (ChunkSectionPos, ChunkNibbleArray) -> Unit): SlimeChunk {
         val heightmapData = data.readLongArray(37) // Got this from looking at the length of the array in a vanilla region file.
@@ -102,23 +108,15 @@ object SlimeDeserialiser {
             sections[i] = section
         }
 
-        return SlimeChunk(pos, sections)
+        val chunk = SlimeChunk(pos, sections)
+        chunk.setBiomes(BiomeArray(registryManager.get(Registry.BIOME_KEY), biomeData))
+        return chunk
     }
 
     private fun readChunkSection(i: Int, data: Buffer, blockLightHandler: (ChunkNibbleArray) -> Unit, skyLightHandler: (ChunkNibbleArray) -> Unit): ChunkSection {
-        val debuggingPath = Paths.get("debugging_after.bin")
-        if (!Files.exists(debuggingPath)) {
-            debuggingPath.sink().use {
-                it.buffer().use { sink ->
-                    data.copy().writeTo(sink.outputStream())
-                }
-            }
-        }
-
         val yOffset = i shl 4 // Multiply by 16
         val section = ChunkSection(yOffset)
 
-        val initialLength = data.size
         val blockLightData = data.readByteArray(2048)
         val blockLight = ChunkNibbleArray(blockLightData)
         blockLightHandler.invoke(blockLight)
